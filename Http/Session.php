@@ -330,7 +330,7 @@ class Session implements SessionInterface
      */
     public function makeToken()
     {
-        return md5($_SESSION['REMOTE_ADDR'].'-'.rand(1000, 9999));
+        return md5($_SERVER['REMOTE_ADDR'].'-'.rand(1000, 9999));
     }
 
 }
