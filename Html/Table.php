@@ -3,7 +3,12 @@
 namespace m\Html;
 
 
-class Table 
+/**
+ * A helper object for creating HTML table elements.
+ * 
+ * @package m\Html
+ */
+class Table extends Element
 {
 
     /**
@@ -157,8 +162,10 @@ class Table
     public function render()
     {
         
-        $output = "<table>\n\t<tbody>\n";
+        // Render the table container
+        $output = "<table {$this->renderAttributes()} >\n\t<tbody>\n";
         
+        // Render the heading
         $output .= "\t\t<th>\n";
         
         foreach ($this->_head as $heading) {
@@ -169,6 +176,7 @@ class Table
         
         $output .= "\t\t</th>\n";
         
+        // Render the rows
         foreach($this->_rows as $row) {
             
             $output .= "\t\t<tr>\n";
