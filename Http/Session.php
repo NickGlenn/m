@@ -2,6 +2,12 @@
 
 namespace m\Http;
 
+
+/**
+ * An object representation of the session.
+ * 
+ * @package m\Http
+ */
 class Session implements SessionInterface
 {
 

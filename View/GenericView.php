@@ -3,6 +3,13 @@
 namespace m\View;
 use m\Http\Response;
 
+
+/**
+ * A standard view class that will render a PHP view file and return 
+ * it as a string.  Complete with data passing.
+ * 
+ * @package m\View
+ */
 class GenericView extends Response
 {
 

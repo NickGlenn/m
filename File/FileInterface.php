@@ -3,6 +3,11 @@
 namespace m\File;
 
 
+/**
+ * Interface for file objects.
+ * 
+ * @package m\File
+ */
 interface FileInterface 
 {
 

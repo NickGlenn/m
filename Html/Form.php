@@ -4,6 +4,12 @@ namespace m\Html;
 use m\Html\Element;
 use m\Http\SessionInterface;
 
+
+/**
+ * A helper object for building and rendering HTML forms.
+ * 
+ * @package m\Html
+ */
 class Form
 {
 

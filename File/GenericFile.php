@@ -3,6 +3,11 @@
 namespace m\File;
 
 
+/**
+ * A generic object representation of a file.
+ * 
+ * @package m\File
+ */
 class GenericFile implements FileInterface
 {
 

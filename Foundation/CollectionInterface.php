@@ -1,11 +1,13 @@
 <?php
-/**
- * @author Nick
- */
 
 namespace m\Foundation;
 
 
+/**
+ * Interface for collection objects.
+ * 
+ * @package m\Foundation
+ */
 interface CollectionInterface 
 {
 

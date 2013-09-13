@@ -3,6 +3,11 @@
 namespace m\Html;
 
 
+/**
+ * An object representation of an HTML element.
+ * 
+ * @package m\Html
+ */
 abstract class Element
 {
 

@@ -3,6 +3,12 @@
 namespace m\Foundation;
 
 
+/**
+ * The core class for m framework.  This is where the meat of the
+ * library is stored.
+ * 
+ * @package m\Foundation
+ */
 class Core extends Collection
 {
 

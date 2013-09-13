@@ -3,6 +3,12 @@
 namespace m\Http;
 use m\Foundation\CollectionInterface;
 
+
+/**
+ * Interface for HTTP session objects.
+ * 
+ * @package m\Http
+ */
 interface SessionInterface extends CollectionInterface
 {
 

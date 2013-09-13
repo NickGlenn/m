@@ -3,6 +3,11 @@
 namespace m\Http;
 
 
+/**
+ * An object representation of the HTTP response.
+ * 
+ * @package m\Http
+ */
 class Response
 {
 

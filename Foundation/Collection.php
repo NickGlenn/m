@@ -3,6 +3,12 @@
 namespace m\Foundation;
 
 
+/**
+ * A generic data collection class.  This can be viewed as a
+ * parameter bag or advanced StdObject.
+ * 
+ * @package m\Foundation
+ */
 class Collection
 {
 
