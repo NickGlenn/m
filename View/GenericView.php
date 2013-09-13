@@ -14,17 +14,27 @@ class GenericView extends Response
     /**
      * @var string View file directory
      */
-    protected $_dir;
+    protected static $_defaultDir = '../../../app/view/';
+
+    /**
+     * @var string The default view file extension
+     */
+    protected static $_defaultExt = 'php';
+
+    /**
+     * @var string The view file
+     */
+    protected $_file;
 
     /**
      * Constructor.
      *
-     * @param string $directory
+     * @param string $file
      * @throws \InvalidArgumentException
      */
-    public function __construct($directory)
+    public function __construct($file)
     {
-        $this->setDir($directory);
+        $this->setFile($file);
     }
 
     /**
@@ -32,16 +42,13 @@ class GenericView extends Response
      *
      * @param string $directory
      * @throws \InvalidArgumentException
-     * @return \m\View
      */
-    public function setDir($directory)
+    public static function setBaseDirectory($directory)
     {
         if (!is_dir($directory))
             throw new \InvalidArgumentException('m\View\GenericView: Given string "'.$directory.'" is not a valid directory.');
 
-        $this->_dir = (string) rtrim($directory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-
-        return $this;
+        static::$_defaultDir = (string) rtrim($directory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
     }
 
     /**
@@ -49,9 +56,58 @@ class GenericView extends Response
      *
      * @return string
      */
-    public function getDir()
+    public static function getBaseDirectory()
     {
-        return $this->_dir;
+        return static::$_defaultDir;
+    }
+
+    /**
+     * Sets the default view file extension.
+     *
+     * @param string $extension
+     */
+    public static function setDefaultExtension($extension)
+    {
+        static::$_defaultExt = (string) ltrim($extension, '.');
+    }
+
+    /**
+     * Returns the default view file extension.
+     *
+     * @return string
+     */
+    public static function getDefaultExtension()
+    {
+        return static::$_defaultExt;
+    }
+
+    /**
+     * Set the view file name.  If an extension is provided,
+     * that extension will be used over the default.
+     *
+     * @param string $file
+     * @return \m\View\GenericView
+     */
+    public function setFile($file)
+    {
+        $path = pathinfo((string) $file);
+
+        if (!$path['extension'])
+            $file .= '.'.static::$_defaultExt;
+
+        $this->_file = trim($file, DIRECTORY_SEPARATOR);
+
+        return $this;
+    }
+
+    /**
+     * Returns the file name.
+     *
+     * @return string
+     */
+    public function getFile()
+    {
+        return $this->_file;
     }
 
     /**
@@ -166,8 +222,8 @@ class GenericView extends Response
         }
 
         return $this;
-    }
 
+    }
     /**
      * Clear all of the view data.
      *
@@ -206,7 +262,7 @@ class GenericView extends Response
      */
     public function __get($key)
     {
-        return isset($this->_data[$key]) ? $this->_data[$key] : null;
+        return isset($this->data[$key]) ? $this->data[$key] : null;
     }
 
     /**
@@ -217,32 +273,32 @@ class GenericView extends Response
      */
     public function __set($key, $value)
     {
-        $this->_data[$key] = $value;
+        $this->data[$key] = $value;
     }
 
     /**
-     * Fetches a view file and captures it.
+     * Fetches the set view file and captures it.
      *
-     * @param string $file
      * @return string
      */
-    public function fetch($file)
+    public function fetch()
     {
         extract($this->_data);
         ob_start();
-        include $this->_dir.$file;
+        include static::$_defaultDir.$this->_file;
         return ob_get_clean();
     }
 
     /**
-     * Fetched the rendered view file and writes it to the response.
-     *
-     * @param string $file
-     * @return string
+     * Renders the view file if the response body hasn't been set yet.  Then
+     * sends the response as usual.
      */
-    public function fetchWrite($file)
+    public function send()
     {
-        return $this->_body = $this->fetch($file);
+        if (!$this->_body)
+            $this->_body = $this->fetch();
+
+        parent::send();
     }
 
 }
