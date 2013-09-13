@@ -1,5 +1,5 @@
 {
-    "name": "heroicteam/m-php-framework",
+    "name": "heroicteam/m",
     "type": "library",
     "description": "The m PHP micro framework.",
     "keywords": ["microframework"],
