@@ -9,12 +9,12 @@ class Response
     /**
      * @var string The response body
      */
-    protected $_body;
+    protected $_body = '';
 
     /**
      * @var array The response headers
      */
-    protected $_headers;
+    protected $_headers = array();
 
     /**
      * @var \m\Http\SessionInterface Session object for flashing
@@ -24,7 +24,7 @@ class Response
     /**
      * @var int The response status code
      */
-    protected $_status;
+    protected $_status = 200;
 
     /**
      * @var array HTTP response codes and messages
