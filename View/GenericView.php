@@ -206,7 +206,7 @@ class GenericView extends Response
      */
     public function __get($key)
     {
-        return isset($this->data[$key]) ? $this->data[$key] : null;
+        return isset($this->_data[$key]) ? $this->_data[$key] : null;
     }
 
     /**
@@ -217,7 +217,7 @@ class GenericView extends Response
      */
     public function __set($key, $value)
     {
-        $this->data[$key] = $value;
+        $this->_data[$key] = $value;
     }
 
     /**
