@@ -116,7 +116,7 @@ class Response
     public function getSession()
     {
         if (!isset($this->_session))
-            throw new \Exception('m\Http\Response: No session object available to flash "'.$key.'" to.')
+            throw new \Exception('m\Http\Response: No session object available to flash "'.$key.'" to.');
 
         return $this->_session;
     }
@@ -132,7 +132,7 @@ class Response
     public function pass($key, $value)
     {
         if (!isset($this->_session))
-            throw new \Exception('m\Http\Response: No session object available to flash "'.$key.'" to.')
+            throw new \Exception('m\Http\Response: No session object available to flash "'.$key.'" to.');
 
         $this->_session->flash($key, $value);
 
@@ -149,7 +149,7 @@ class Response
     public function passMany(array $data)
     {
         if (!isset($this->_session))
-            throw new \Exception('m\Http\Response: No session object available to flash "'.$key.'" to.')
+            throw new \Exception('m\Http\Response: No session object available to flash "'.$key.'" to.');
 
         $this->_session->flashMany($data);
 
