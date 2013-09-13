@@ -311,17 +311,17 @@ class Response
     public function cache($expires)
     {
         if ($expires === false) {
-            $this->headers['Expires'] = 'Mon, 26 Jul 1997 05:00:00 GMT';
-            $this->headers['Cache-Control'] = array(
+            $this->_headers['Expires'] = 'Mon, 26 Jul 1997 05:00:00 GMT';
+            $this->_headers['Cache-Control'] = array(
                 'no-store, no-cache, must-revalidate',
                 'post-check=0, pre-check=0',
                 'max-age=0'
             );
-            $this->headers['Pragma'] = 'no-cache';
+            $this->_headers['Pragma'] = 'no-cache';
         } else {
             $expires = is_string($expires) ? strtotime($expires) : $expires;
-            $this->headers['Expires'] = gmdate('D, d M Y H:i:s', $expires).' GMT';
-            $this->headers['Cache-Control'] = 'max-age='.($expires - time());
+            $this->_headers['Expires'] = gmdate('D, d M Y H:i:s', $expires).' GMT';
+            $this->_headers['Cache-Control'] = 'max-age='.($expires - time());
         }
         return $this;
     }
@@ -359,7 +359,7 @@ class Response
         if (null === $protocol) {
             $protocol = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
         }
-        header($protocol.' '.$this->status.' '.$this->getStatusMessage($this->status));
+        header($protocol.' '.$this->_status.' '.$this->getStatusMessage($this->_status));
 
         return $this;
     }
@@ -371,7 +371,7 @@ class Response
      */
     public function sendHeaders()
     {
-        foreach ($this->headers as $key => $value) {
+        foreach ($this->_headers as $key => $value) {
             if (is_array($value)) {
                 foreach ($value as $v) {
                     header($key.': '.$v, false);
@@ -401,7 +401,7 @@ class Response
             $this->sendStatus($protocol)->sendHeaders();
 
         // Send the body
-        echo $this->body;
+        echo $this->_body;
 
         // Kill the script
         exit;
