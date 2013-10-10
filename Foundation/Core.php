@@ -87,6 +87,9 @@ class Core extends Collection
             if ($this->_ioc[$name]['instance'] && !$force)
                 return $this->_ioc[$name]['instance'];
 
+            // Include an instance of this object as the final argument
+            $params[] = $this;
+
             // Call the stored container
             $result = call_user_func_array($this->_ioc[$name]['closure'], $params);
 
@@ -122,6 +125,10 @@ class Core extends Collection
      */
     public function call($event, array $params = array())
     {
+
+        // Include an instance of this object as the final argument
+        $params[] = $this;
+
         if (isset($this->_hooks[$event])) {
             foreach($this->_hooks[$event] as $hook) {
                 call_user_func_array($hook, $params);
