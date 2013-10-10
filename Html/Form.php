@@ -14,9 +14,14 @@ class Form
 {
 
     /**
-     * @var string The form action
+     * @var array The form value data
      */
-    protected $_action;
+    protected $_data = array();
+
+    /**
+     * @var bool Enable CSRF Token
+     */
+    protected $_enableToken = true;
 
     /**
      * @var array The form fields
@@ -24,33 +29,14 @@ class Form
     protected $_fields = array();
 
     /**
-     * @var string The form method
+     * @var array Stores the custom field handlers/generators
      */
-    protected $_method;
-
-    /**
-     * @var bool Support multipart encoding
-     */
-    protected $_multipart;
+    protected $_handlers = array();
 
     /**
      * @var \m\Http\SessionInterface Session object
      */
     protected $_session;
-
-    /**
-     * Constructor.
-     *
-     * @param string $action
-     * @param string $method
-     * @param bool $multipart
-     */
-    public function __construct($action = '', $method = 'POST', $multipart = false)
-    {
-        $this->_action = (string) $action;
-        $this->_method = (string) $method;
-        $this->_multipart = (bool) $multipart;
-    }
 
     /**
      * Set a session object for the CSRF token.
@@ -73,75 +59,6 @@ class Form
     public function getSession()
     {
         return $this->_session;
-    }
-
-    /**
-     * Sets the action for the form.
-     *
-     * @param string $action
-     * @return \m\Html\Form
-     */
-    public function setAction($action)
-    {
-        $this->_action = (string) $action;
-
-        return $this;
-    }
-
-    /**
-     * Returns the action for the form.
-     *
-     * @return string
-     */
-    public function getAction()
-    {
-        return $this->_action;
-    }
-
-    /**
-     * Sets the method for the form.
-     *
-     * @param string $method
-     * @return \m\Html\Form
-     */
-    public function setMethod($method)
-    {
-        $this->_method = (string) $method;
-
-        return $this;
-    }
-
-    /**
-     * Returns the method for the form.
-     *
-     * @return string
-     */
-    public function getMethod()
-    {
-        return $this->_method;
-    }
-
-    /**
-     * Enables/disable multipart encoding.
-     *
-     * @param bool $enable
-     * @return \m\Html\Form
-     */
-    public function useMultipart($enable = true)
-    {
-        $this->_multipart = (bool) $enable;
-
-        return $this;
-    }
-
-    /**
-     * Returns true if multipart encoding is enabled.
-     *
-     * @return bool
-     */
-    public function isMultipart()
-    {
-        return $this->_multipart;
     }
 
     /**
@@ -219,19 +136,22 @@ class Form
      */
     public function render()
     {
-        $output =   '<form action="'.$this->_action.'" method="'.$this->_method.'"'.
-                    ($this->_multipart ? 'enctype="multipart/form-data"' : '').' />';
 
-        if ($this->_session)
-            $output .= '<input type="hidden" name="csrf_token" value="'.$this->_session->getToken().'" />';
 
-        foreach($this->_fields as $field) {
+        $fields = $this->_fields;
 
-            $output .= $field->render();
+        $output = $field['_start'];
+        $close = $field['_close'];
+
+        unset($field['_start'], $field['_close']);
+
+        foreach($fields as $field) {
+
+            $output .= $field;
 
         }
 
-        return $output.'</form>';
+        return $output.$close;
     }
 
     /**
@@ -242,14 +162,158 @@ class Form
      */
     public function update(array $data)
     {
-        foreach($data as $name => $value) {
-
-            if (isset($this->_fields[$name]))
-                $this->_fields[$name]->setValue($value);
-
-        }
+        $this->_data = array_merge($this->_data, $data);
 
         return $this;
+    }
+
+    public function setValueFor($name, $value)
+    {
+        $this->_data[$name] = $value;
+
+        return $this;
+    }
+
+    public function getValueFor($name, $default = null)
+    {
+        return isset($this->_data[$name]) ? $this->_data[$name] : $default;
+    }
+
+    public function hasValueFor($name)
+    {
+        return array_key_exists($this->_data, $name);
+    }
+
+    public function clearValueFor($name)
+    {
+        unset($this->_data[$name]);
+
+        return $this;
+    }
+
+    public function setFieldHandler($macro, $handler)
+    {
+        if (!is_callable($handler) || !$handler instanceof \Closure)
+            throw new \InvalidArgumentException('m\Http\Form: setFieldHandler method requires a callable $handler.');
+
+        $this->_handlers[$macro] = $handler;
+
+        return $this;
+    }
+
+    public function getFieldHandler($macro)
+    {
+        return isset($this->_handlers[$macro]) ? $this->_handlers[$macro] : function() { return 'handler not found'; };
+    }
+
+    public function makeField($macro, array $params = array())
+    {
+        // Get the field handler
+        $handler = $this->getFieldHandler($macro);
+
+        // Final parameter passed is the form object
+        $params[] = $this;
+
+        // Call the custom handler and capture the output
+        $output = call_user_func_array($handler, $params);
+
+        return $output;
+    }
+
+    public function __call($macro, $params)
+    {
+        return $this->makeField($macro, $params);
+    }
+
+    /**
+     * Renders an array of values as a string.  It will also
+     * change any HTML value attribute values to the %value% tag
+     * to allow the string to be dynamically changed.
+     * 
+     * @param  array  $attributes [description]
+     * @return [type]             [description]
+     */
+    public function renderAttributes($name, array $attributes, $default = null)
+    {
+        $output = '';
+
+        foreach($attributes as $key => $value) {
+
+            // If it's the "value" attribute, change it to %value%
+            if (strtolower($key) == 'value') {
+                // Set it to our catchable string
+                $value = '%value%';
+            }
+
+            // Simple key="value"
+            $output .= $key.' = "'.$value.'" ';
+        }
+
+        return $output;
+    }
+
+    public function renderWithValue($string, $fieldName)
+    {
+        $value = $this->getValueFor($fieldName);
+
+        return str_replace('%value%', $value, $string);
+    }
+
+    public function start($action = '', $method = 'POST', $multipart = false)
+    {
+        // Create the form start tag
+        $output =   '<form action="'.$action.'" method="'.($method == 'GET' ? 'GET' : 'POST').'"'.($multipart ? 'enctype="multipart/form-data"' : '').' />';
+
+        // If we have a session object and token is enabled, generate the field
+        if ($this->_session && $this->_enableToken)
+            $output .= '<input type="hidden" name="_token" value="'.$this->_session->getToken().'" />';
+
+        // Because modern browsers don't support anything outside of GET and POST, we need to pass it manually
+        if ($this->_method != 'GET' || $this->_method != 'POST')
+            $output .= '<input type="hidden" name="_method" value="'.$method.'" />';
+
+        return $this->_fields['_start'] = $output;
+
+    }
+
+    public function close()
+    {
+        return $this->_fields['_close'] = '</form>';
+    }
+
+    /**
+     * Generates and stores a new input field, then returns it.
+     * 
+     * @param string $name
+     * @param string $type
+     * @param array  $attributes
+     * @return string
+     */
+    public function addInput($name, $type, $default = null, array $attributes)
+    {
+        $attributes['value'] = $default;
+
+        $output = "<input name=\"{$name}\" type=\"{$type}\" {$this->renderAttributes($attributes)} />";
+
+        return $this->_fields[$name] = $output;
+    }
+
+    /**
+     * Returns an input string.
+     * 
+     * @param string $name
+     * @param string $type
+     * @param array  $attributes
+     * @return string
+     */
+    public function input($name, $type, $default = null, array $attributes)
+    {
+        return $this->renderWithValue($this->addInput($name, $type, $default = null, $attributes));
+    }
+
+    public function addTextarea($name, $default = null, array $attributes)
+    {
+        $output = "<textarea name=\"{$name}\" 
     }
 
 }
