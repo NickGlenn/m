@@ -130,15 +130,20 @@ class Form
     }
 
     /**
-     * Compiles the form and it fields to a string.
+     * Compiles the form and its generated fields to a string.
      *
      * @return string
      */
     public function render()
     {
 
-
         $fields = $this->_fields;
+
+        if (!isset($field['_start']))
+            $this->open();
+
+        if (!isset($field['_close']))
+            $this->close();
 
         $output = $field['_start'];
         $close = $field['_close'];
@@ -167,6 +172,13 @@ class Form
         return $this;
     }
 
+    /**
+     * Sets a value for a field.
+     * 
+     * @param string $name
+     * @param string $value
+     * @return \m\Html\Form
+     */
     public function setValueFor($name, $value)
     {
         $this->_data[$name] = $value;
@@ -174,16 +186,36 @@ class Form
         return $this;
     }
 
+    /**
+     * Returns the value for a field or the given default value
+     * if a value did not exist.
+     * 
+     * @param string $name
+     * @param string $default
+     * @return string
+     */
     public function getValueFor($name, $default = null)
     {
         return isset($this->_data[$name]) ? $this->_data[$name] : $default;
     }
 
+    /**
+     * Returns true if the value exists.
+     * 
+     * @param string $name
+     * @return bool
+     */
     public function hasValueFor($name)
     {
         return array_key_exists($this->_data, $name);
     }
 
+    /**
+     * Clears the value for the given field.
+     * 
+     * @param string $name
+     * @return \m\Html\Form
+     */
     public function clearValueFor($name)
     {
         unset($this->_data[$name]);
@@ -191,21 +223,41 @@ class Form
         return $this;
     }
 
+    /**
+     * Sets a handler to generate the string for a field.
+     * 
+     * @param string $macro
+     * @param \Closure|callable $handler
+     * @return \m\Html\Form
+     */
     public function setFieldHandler($macro, $handler)
     {
         if (!is_callable($handler) || !$handler instanceof \Closure)
-            throw new \InvalidArgumentException('m\Http\Form: setFieldHandler method requires a callable $handler.');
+            throw new \InvalidArgumentException('m\Http\Form: setFieldHandler method requires a callable handler.');
 
         $this->_handlers[$macro] = $handler;
 
         return $this;
     }
 
+    /**
+     * Returns the raw handler or returns a dummy Closure.
+     * 
+     * @param string $macro
+     * @return mixed
+     */
     public function getFieldHandler($macro)
     {
         return isset($this->_handlers[$macro]) ? $this->_handlers[$macro] : function() { return 'handler not found'; };
     }
 
+    /**
+     * Calls a stored custom handler.
+     * 
+     * @param string $macro
+     * @param array $params
+     * @return string
+     */
     public function makeField($macro, array $params = array())
     {
         // Get the field handler
@@ -220,6 +272,14 @@ class Form
         return $output;
     }
 
+    /**
+     * Allows you to call a handler by using the macro name as
+     * the method name.
+     * 
+     * @param string $macro
+     * @param array $params
+     * @return 
+     */
     public function __call($macro, $params)
     {
         return $this->makeField($macro, $params);
@@ -230,8 +290,8 @@ class Form
      * change any HTML value attribute values to the %value% tag
      * to allow the string to be dynamically changed.
      * 
-     * @param  array  $attributes [description]
-     * @return [type]             [description]
+     * @param array $attributes
+     * @return string
      */
     public function renderAttributes($name, array $attributes, $default = null)
     {
@@ -252,6 +312,14 @@ class Form
         return $output;
     }
 
+    /**
+     * Replaces the %value% in the given string with the stored
+     * value for the field.
+     * 
+     * @param string $string
+     * @param string $fieldName
+     * @return string
+     */
     public function renderWithValue($string, $fieldName)
     {
         $value = $this->getValueFor($fieldName);
@@ -259,7 +327,16 @@ class Form
         return str_replace('%value%', $value, $string);
     }
 
-    public function start($action = '', $method = 'POST', $multipart = false)
+    /**
+     * Creates the opening form tag and generates the token and 
+     * method fields.
+     * 
+     * @param string $action
+     * @param string $method
+     * @param bool $multipart
+     * @return string
+     */
+    public function open($action = '', $method = 'POST', $multipart = false)
     {
         // Create the form start tag
         $output =   '<form action="'.$action.'" method="'.($method == 'GET' ? 'GET' : 'POST').'"'.($multipart ? 'enctype="multipart/form-data"' : '').' />';
@@ -276,6 +353,12 @@ class Form
 
     }
 
+    /**
+     * Generates the closing form tag.
+     * 
+     * @param string $name
+     * @return \m\Html\Form
+     */
     public function close()
     {
         return $this->_fields['_close'] = '</form>';
