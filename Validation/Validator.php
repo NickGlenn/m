@@ -224,7 +224,7 @@ class Validator
         // Check the CSRF token if we have a session object
         if ($this->_session) {
 
-            if (!isset($data->csrf_token) || $data->csrf_token !== $this->_session->getToken()) {
+            if (!isset($data->_token) || $data->_token !== $this->_session->getToken()) {
 
                 $this->_errors[] = $messages['csrf'];
                 return false;
