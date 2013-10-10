@@ -215,16 +215,13 @@ class Validator
     public function check(array $data, array $messages = array())
     {
 
-        // Convert the given data to an object
-        $data = (object) $data;
-
         // Merge the given messages with the set messages.
         $messages = array_merge($this->_messages, $messages);
 
         // Check the CSRF token if we have a session object
         if ($this->_session) {
 
-            if (!isset($data->_token) || $data->_token !== $this->_session->getToken()) {
+            if (!isset($data['_token']) || $data['_token'] !== $this->_session->getToken()) {
 
                 $this->_errors[] = $messages['csrf'];
                 return false;
@@ -241,7 +238,7 @@ class Validator
                 $rules = explode('|', $rules);
 
             // Get the data for the rule
-            $input = isset($data->$key) ? $data->$key : null;
+            $input = isset($data[$key]) ? $data[$key] : null;
 
             // Get the type of the input
             $inputType = $this->getInputType($input);
