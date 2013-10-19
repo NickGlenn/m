@@ -28,15 +28,40 @@ class Collection
     }
 
     /**
-     * Sets an item in the collection data.
+     * Stores an item in the collection at the designated key.
+     * Dot syntax can be used to nest data in the array.
      *
      * @param string $key
      * @param mixed $value
      * @return \m\Foundation\Collection
      */
-    public function set($key, $value)
+    public function set($key, $value, $dot_syntax = true)
     {
-        $this->_data[$key] = $value;
+        if ($dot_syntax === true) {
+
+            $paths = explode('.', $key);
+            $pathCount = count($paths);
+            $currentIteration = 0;
+            $node =& $this->_data;
+            foreach ($paths as $path) {
+                if (isset($node[$path])) {
+                    $node =& $node[$path];
+                    $currentIteration++;
+                } elseif($currentIteration < $pathCount) {
+                    $node[$path] = array();
+                    $node =& $node[$path];
+                    $currentIteration++;
+                }
+            }
+            
+            $node = $value;
+            
+        } else {
+            
+            $this->_data[$key] = $value;
+            
+        }
+
         return $this;
     }
 
@@ -73,9 +98,27 @@ class Collection
      * @param string $key
      * @return mixed
      */
-    public function get($key)
+    public function get($key, $default = null, $dot_syntax = true)
     {
-        return isset($this->_data[$key]) ? $this->_data[$key] : null;
+        if ($dot_syntax === true) {
+            $paths = explode('.', $key);
+            $node =& $this->_data;
+            
+            foreach ($paths as $path) {
+                if (!is_array($node) || !isset($node[$path])) {
+                    // error occurred
+                    return $default;
+                }
+                $node =& $node[$path];
+            }
+            
+            return $node;
+            
+        } else {
+            
+            return isset($this->_data[$key]) ? $this->_data[$key] : $default;
+            
+        }
     }
 
     /**
